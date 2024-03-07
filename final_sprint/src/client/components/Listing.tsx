@@ -1,12 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { GET, POST, PUT, DELETE } from '../services/fetcher';
+import PrivateWrapper from './PrivateWrapper'; 
 
-const Listing: React.FC = () => {
+interface Book {
+  id: number;
+  title: string;
+  author: string;
+  price?: number;
+  categoryid: number;
+}
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+const BookListing: React.FC = () => {
+
   return (
-    <div>
-      <h1>Book Listing</h1>
-      <p>This is the Book Listing Page.</p>
-    </div>
+    <PrivateWrapper> 
+      <div>
+        <h1>Book Listing</h1>
+        <Link to="/bookdetails">Go to Book Details</Link>
+
+      </div>
+    </PrivateWrapper>
   );
 };
 
-export default Listing;
+export default BookListing;

@@ -10,11 +10,16 @@ const tokenCheck = (req: Request, res: Response, next: NextFunction) => {
         return res.status(401).json({ message: "No token provided" });
     }
 
-    const tokenSecret: Secret = process.env.JWT_SECRET as Secret; 
+    const tokenSecret: Secret = process.env.JWT_SECRET as Secret;
 
     try {
         const decoded = jwt.verify(token, tokenSecret) as Payload;
         req.user = decoded;
+
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ message: "Insufficient privileges" });
+        }
+
         next();
     } catch (err) {
         console.error(err);

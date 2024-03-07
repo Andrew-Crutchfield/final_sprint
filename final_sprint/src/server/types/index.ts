@@ -23,6 +23,7 @@ export interface Book {
 export interface Payload {
     id: User["id"];
     email: User["email"];
+    role: User["role"];
 }
 
 declare global {
@@ -32,8 +33,9 @@ declare global {
         }
     }
 }
+
 export interface UserPayload {
     id: number;
     username: string;
-    email:string;
+    email: string;
 }

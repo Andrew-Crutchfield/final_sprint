@@ -2,8 +2,13 @@ import Swal from 'sweetalert2';
 
 type ValidMethods = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-async function fetcher<T = any>(url: string, method: ValidMethods = 'GET', rawData?: any) {
+async function fetcher<T>(url: string, method: ValidMethods = 'GET', rawData?: any): Promise<T> {
   const headers: HeadersInit = {};
+  
+  const token = localStorage.getItem('token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`; 
+  }
 
   const options: RequestInit = {
     method,
@@ -16,35 +21,43 @@ async function fetcher<T = any>(url: string, method: ValidMethods = 'GET', rawDa
   }
 
   try {
-    const res = await fetch(process.env.SERVER_URL + url, options);
-    const data = await res.json();
+    const apiUrl = process.env.SERVER_URL || 'http://localhost:3000';
+    const res = await fetch(apiUrl + url, options);
 
-    if (res.ok) {
-      return data as T;
-    } else {
-      console.error(data);
+    if (!res.ok) {
+      const errorData = await res.json();
+
+      console.error(`Request to ${url} failed with status ${res.status}`);
+      console.error(errorData);
+
       Swal.fire({
         title: 'Server error :(',
         icon: 'error',
-        text: data.message,
+        text: errorData.message || 'Unknown error',
         timer: 6000,
       });
-      throw new Error(data.message || 'Server error');
+
+      throw new Error(errorData.message || 'Request failed');
     }
+
+    return res.json() as Promise<T>;
   } catch (error) {
     const err = error as Error;
+    console.error(`Network error during request to ${url}`);
     console.error(err);
+
     Swal.fire({
       title: 'Networking error :(',
       icon: 'error',
-      text: err.message || 'Networking error',
+      text: err.message || 'Unknown error',
       timer: 6000,
     });
+
     throw err;
   }
 }
 
-export const GET = <T = any>(url: string) => fetcher<T>(url);
-export const DELETE = <T = any>(url: string) => fetcher<T>(url, 'DELETE');
-export const POST = <T = any>(url: string, data: any) => fetcher<T>(url, 'POST', data);
-export const PUT = <T = any>(url: string, data: any) => fetcher<T>(url, 'PUT', data);
+export const GET = <T>(url: string) => fetcher<T>(url);
+export const DELETE = <T>(url: string) => fetcher<T>(url, 'DELETE');
+export const POST = <T>(url: string, data: any) => fetcher<T>(url, 'POST', data);
+export const PUT = <T>(url: string, data: any) => fetcher<T>(url, 'PUT', data);

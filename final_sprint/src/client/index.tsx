@@ -1,17 +1,20 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import AppRouter from './router/routes';
 
-import './styles/app.scss';
+const container = document.getElementById('root');
 
-// ESBuild Hot Reload for dev environment only
-if (process.env.NODE_ENV === 'development') {
-	new EventSource('/esbuild').addEventListener('change', () => location.reload());
+if (!container) {
+    throw new Error('Failed to find the root element');
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+const root = createRoot(container);
+
 root.render(
-	<React.StrictMode>
-		<App />
-	</React.StrictMode>
+    <BrowserRouter>
+        <React.StrictMode>
+            <AppRouter />
+        </React.StrictMode>
+    </BrowserRouter>
 );

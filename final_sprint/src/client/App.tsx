@@ -4,15 +4,17 @@ import { GET } from './services/fetcher';
 interface AppProps {}
 
 const App: React.FC<AppProps> = () => {
-    const [data, setBooks] = useState('');
+    const [data, setData] = useState<any>(null);
 
     useEffect(() => {
-        GET('/api/books').then(setBooks);
+        GET('/api/books').then(setData);
     }, []);
 
     return (
         <div className="mx-auto mt-5 w-25">
-            <div className="alert alert-info text-center">Hello {data}</div>
+            <div className="alert alert-info text-center">
+                <pre>{JSON.stringify(data, null, 2)}</pre>
+            </div>
         </div>
     );
 };

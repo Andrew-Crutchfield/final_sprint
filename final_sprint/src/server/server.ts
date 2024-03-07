@@ -1,39 +1,49 @@
-import express from 'express';
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import routes from './routes'; // You need to define your routes
-import { tokenCheck } from './middlewares/tokenCheck'; // Import the tokenCheck middleware
+import path from 'path';
+import dotenv from 'dotenv'; 
+import tokenCheck from './middlewares/tokenCheck';
+import { loginUser, registerUser } from './controllers/authController';
+import bookRoutes from './routes/bookRoutes';
+import authRoutes from './routes/authRoutes';
+import categoryRoutes from './routes/categoryRoutes';
 
-const isProduction = process.env.NODE_ENV === 'production';
-const isDevelopment = process.env.NODE_ENV === 'development';
+dotenv.config();
 
-const app = express();
+const isProduction: boolean = process.env.NODE_ENV === 'production';
+const isDevelopment: boolean = process.env.NODE_ENV === 'development';
 
-if (isDevelopment) {
-    app.use(cors());
-}
+const app: Express = express();
 
-if (isProduction) {
-    app.use(express.static('public'));
-}
-
+app.use(cors());
 app.use(express.json());
 
-// Apply the tokenCheck middleware to secure routes that require authentication
-app.use('/api/secure', tokenCheck);
-
-// Define your API routes
-app.use('/api', routes);
-
-app.get('/api/hello', (req, res) => {
-    res.json({ message: 'World' });
-});
-
-if (isProduction) {
-    app.get('*', (req, res) => {
-        res.sendFile('index.html', { root: 'public' });
-    });
+if (isDevelopment) {
+  app.use(express.static('public'));
 }
 
-const PORT = process.env.PORT || 3000; // Use the original port 3000
+app.use('/api', bookRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
 
-app.listen(PORT, () => {console.log(`Server is running on port ${PORT}`);});
+app.use('/api/protected-route', tokenCheck);
+
+app.get('/api/hello', (_, res: Response) => {
+  res.json({ message: 'Hello World' });
+});
+
+app.post('/auth/login', loginUser);
+app.post('/auth/register', registerUser);
+
+if (isProduction) {
+  app.use(express.static(path.join(__dirname, 'public')));
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+}
+
+const PORT: string | number = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

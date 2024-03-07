@@ -1,26 +1,25 @@
-import { RequestHandler } from 'express';
-import jwt from 'jsonwebtoken';
-import config from '../config';
-import { Payload } from '../types';
+import { Request, Response, NextFunction } from 'express';
+import jwt, { Secret } from 'jsonwebtoken';
+import { Payload } from '../types/index';
 
-export const tokenCheck: RequestHandler = (req, res, next) => {
-    const authHeader = req.headers.authorization;
+const tokenCheck = (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-    if (!authHeader) {
-        return res.status(401).json({ message: 'Missing auth header' });
+    if (token == null) {
+        return res.status(401).json({ message: "No token provided" });
     }
 
-    const [type, token] = authHeader.split(' ');
-
-    if (!type || !token || type.toLowerCase() !== 'bearer') {
-        return res.status(401).json({ message: 'Missing token or non-bearer token present' });
-    }
+    const tokenSecret: Secret = process.env.JWT_SECRET as Secret; 
 
     try {
-        const payload = jwt.verify(token, config.jwt.secret) as Payload;
-        req.user = payload;
+        const decoded = jwt.verify(token, tokenSecret) as Payload;
+        req.user = decoded;
         next();
-    } catch (error) {
-        return res.status(401).json({ message: 'Bad token' });
+    } catch (err) {
+        console.error(err);
+        return res.status(403).json({ message: "Failed to authenticate token" });
     }
 };
+
+export default tokenCheck;
